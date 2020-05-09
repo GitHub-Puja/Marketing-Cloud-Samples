@@ -59,48 +59,51 @@
         Platform.Load("core","1");
         try {
       </script>
-    %%[
-      //The logic will execute in page load as well as after the form submission, since it has no conditions
-      //Variable Declaration
-      var @firstName, @lastName, @email, @submitted, @subscriberRows, @subscriberRow, @UpdateAccount, @NewAccount, @RecordTypeId, @PersonAccountId
-      //Variable Initialization, you can also initialize the variables in declaration
-      set @firstName = ""
-      set @lastName = ""
-      set @email = ""
-      set @submitted = "false"
-      SET @RecordTypeId = "xxxxxxxxxxxxxxxxxx" //This variable will be used later on the creation of the Account record. Make sure you use RecordtypeID in your create calls when you have person account enabled to assign values to the fields from COntact Object
-      //IF ELSE block in AMPScript
-      //The below code block executes when we submit the form, as the value of submitted is set to true on the button click. 
-      IF RequestParameter("submitted") == "true" THEN
-        SET @email = QUERYPARAMETER('email')
-        SET @firstName = QUERYPARAMETER('firstName')
-        SET @lastName = QUERYPARAMETER('lastName')
-        //RetrieveSalesforceObjects is used to query salesforce objects the first parameter is the name of the objects, the second parameter is the name of the fields to be returned, third parameter is the where condition. You can include more than one condition , but all of them will be evaluated with AND operator
-        SET @subscriberRows = RetrieveSalesforceObjects(
-          "Account",
-          "Id,FirstName,LastName,Subscribed__pc",
-          "PersonEmail", "=", @email )
-        // If condition to check if the query has returned any rows
-        IF RowCount(@subscriberRows) >= 1 THEN
-          //getting the first record from the returned records
-          SET @subscriberRow = Row(@subscriberRows, 1)
-          // getting a specific field from the row
-          SET @PersonAccountId = Field(@subscriberRow, "Id")
-          //UpdateSingleSalesforceObject is used to update a single salesforce record. First parameter is the name of the objecct. Second parameter is the id of the record to be updated. After it the fields to be updated should be included in name value pairs.
-          SET @UpdateAccount = UpdateSingleSalesforceObject('Account',@PersonAccountId,'Subscribed__pc',"true","FirstName", @firstname,"LastName", @lastname)
-        ELSE
-          //The else block is executed when no matching rows are found on Account object. It is going to create a new Account record with CreateSalesforceObject call. The first parameter is name of the object, second parameter is number of fields in your insert call. After that we have the fields in name value pair. if successful the call will return the id of the newly created record.
-          SET @NewAccount = CreateSalesforceObject(
-                  "Account",4,
-                  "FirstName", @firstname,
-                  "LastName", @lastname,
-                  "PersonEmail", @Email,
-                  "Subscribed__pc","true",
-                  "RecordTypeId", @RecordTypeId)
-        ENDIF
-        SET @submitted = "true"
+      
+      %%[
+      //start of the ampscript block
+    //The logic will execute in page load as well as after the form submission, since it has no conditions
+    //Variable Declaration
+    var @firstName, @lastName, @email, @submitted, @subscriberRows, @subscriberRow, @UpdateAccount, @NewAccount, @RecordTypeId, @PersonAccountId
+    //Variable Initialization, you can also initialize the variables in declaration
+    set @firstName = ""
+    set @lastName = ""
+    set @email = ""
+    set @submitted = "false"
+    SET @RecordTypeId = "xxxxxxxxxxxxxxxxxx" //This variable will be used later on the creation of the Account record. Make sure you use RecordtypeID in your create calls when you have person account enabled
+    //IF ELSE block in AMPScript
+    //The below code block executes when we submit the form, as the value of submitted variable is set to true on the button click. 
+    IF RequestParameter("submitted") == "true" THEN
+      SET @email = QUERYPARAMETER('email')
+      SET @firstName = QUERYPARAMETER('firstName')
+      SET @lastName = QUERYPARAMETER('lastName')
+      //RetrieveSalesforceObjects is used to query salesforce objects. The first parameter is the name of the object, the second parameter is the name of the fields to be returned, third parameter is the where condition. You can include more than one condition , but all of them will be evaluated with AND operator
+      SET @subscriberRows = RetrieveSalesforceObjects(
+        "Account",
+        "Id,FirstName,LastName,Subscribed__pc",
+        "PersonEmail", "=", @email )
+      // Condition to check if the query has returned any rows
+      IF RowCount(@subscriberRows) >= 1 THEN
+        //getting the first record from the returned records
+        SET @subscriberRow = Row(@subscriberRows, 1)
+        // getting a specific field from the row
+        SET @PersonAccountId = Field(@subscriberRow, "Id")
+        //UpdateSingleSalesforceObject is used to update a single salesforce record. First parameter is the name of the object. Second parameter is the id of the record to be updated. After it the fields to be updated should be included in name value pairs.
+        SET @UpdateAccount = UpdateSingleSalesforceObject('Account',@PersonAccountId,'Subscribed__pc',"true","FirstName", @firstname,"LastName", @lastname)
+      ELSE
+        //The else block is executed when no matching rows are found on Account object. It is going to create a new Account record with CreateSalesforceObject call. The first parameter is name of the object, second parameter is number of fields in your insert call. After that we have the fields in name value pair. if successful the call will return the id of the newly created record.
+        SET @NewAccount = CreateSalesforceObject(
+                "Account",4,
+                "FirstName", @firstname,
+                "LastName", @lastname,
+                "PersonEmail", @Email,
+                "Subscribed__pc","true",
+                "RecordTypeId", @RecordTypeId)
       ENDIF
-    ]%%
+      SET @submitted = "true"
+    ENDIF
+    //End of the ampscript block
+  ]%%
     <script runat="server">
         }
         //catch block will catch any error from the AMPScript execution
